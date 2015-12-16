@@ -11,10 +11,10 @@ import io.gatling.http.Predef._
 class BasicSimulation extends Simulation {
 
   object Search {
-    val feeder: FeederBuilder[String] = ??? // Define a csv feeder with random strategy
-    val searchUrl: String = ??? // Parametrize search url with searchCriterion using EL
-    val check: HttpCheck = ??? // Use css check to find and store in session url of computer with name searchComputerName
-    val selectUrl: String = ??? // Parametrize url with url stored in session using EL
+    val feeder: FeederBuilder[String] = csv("search.csv").random // Define a csv feeder with random strategy
+    val searchUrl: String = "/computers?f=${searchCriterion}" // Parametrize search url with searchCriterion using EL
+    val check: HttpCheck = css("td a", "href").saveAs("computerUrl") // Use css check to find and store in session url of computer with name searchComputerName
+    val selectUrl: String = "${computerUrl}" // Parametrize url with url stored in session using EL
 
     val search =
       exec(http("Home")
@@ -24,6 +24,7 @@ class BasicSimulation extends Simulation {
         .exec(http("Search")
           .get(searchUrl)
           .check(check))
+        //.exec(s => { println(s("computerUrl")); s; })
         .pause(4)
         .exec(http("Select")
           .get(selectUrl))
